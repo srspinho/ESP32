@@ -33,7 +33,7 @@ static void salvar() {
   s_prefs.putBytes("teclas", s_por_tecla, sizeof(s_por_tecla));
   s_pendente = false;
   s_ultimo_salvo_ms = millis();
-  log_printf("[ESTAT] salvo: total %lu\n", (unsigned long)s_e.total);
+  kbd_log("[ESTAT] salvo: total %lu\n", (unsigned long)s_e.total);
 }
 
 void estat_iniciar() {
@@ -43,7 +43,7 @@ void estat_iniciar() {
   if (s_prefs.getBytesLength("teclas") == sizeof(s_por_tecla))
     s_prefs.getBytes("teclas", s_por_tecla, sizeof(s_por_tecla));
   s_fatia_ms = s_ultimo_salvo_ms = millis();
-  log_printf("[ESTAT] total carregado: %lu\n", (unsigned long)s_e.total);
+  kbd_log("[ESTAT] total carregado: %lu\n", (unsigned long)s_e.total);
 }
 
 void estat_registrar(const uint8_t rel[8]) {

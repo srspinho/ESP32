@@ -76,18 +76,18 @@ static volatile bool      s_leds_novos = false;
 class CallbacksServidor : public NimBLEServerCallbacks {
   void onConnect(NimBLEServer* srv, NimBLEConnInfo& info) override {
     s_estado = BLE_CONECTADO;
-    log_printf("[BLE] conectado: %s\n", info.getAddress().toString().c_str());
+    kbd_log("[BLE] conectado: %s\n", info.getAddress().toString().c_str());
   }
   void onDisconnect(NimBLEServer* srv, NimBLEConnInfo& info, int motivo) override {
     s_estado = BLE_ANUNCIANDO;
-    log_printf("[BLE] desconectado (motivo %d): anunciando de novo\n", motivo);
+    kbd_log("[BLE] desconectado (motivo %d): anunciando de novo\n", motivo);
   }
   void onAuthenticationComplete(NimBLEConnInfo& info) override {
     if (info.isEncrypted()) {
       s_estado = BLE_PRONTO;
-      log_printf("[BLE] pareado%s\n", info.isBonded() ? " (vinculo salvo)" : "");
+      kbd_log("[BLE] pareado%s\n", info.isBonded() ? " (vinculo salvo)" : "");
     } else {
-      log_printf("[BLE] falha no pareamento\n");
+      kbd_log("[BLE] falha no pareamento\n");
     }
   }
 };
@@ -134,7 +134,7 @@ void bleteclado_iniciar() {
   adv->enableScanResponse(true);
   adv->start();
 
-  log_printf("[BLE] anunciando como \"%s\"\n", BLE_NOME_DISPOSITIVO);
+  kbd_log("[BLE] anunciando como \"%s\"\n", BLE_NOME_DISPOSITIVO);
 }
 
 EstadoBle bleteclado_estado() { return s_estado; }
@@ -162,7 +162,7 @@ bool bleteclado_leds_mudaram(uint8_t* leds) {
 void bleteclado_apagar_pareamentos() {
   NimBLEDevice::deleteAllBonds();
   if (s_srv) for (uint16_t h : s_srv->getPeerDevices()) s_srv->disconnect(h);
-  log_printf("[BLE] pareamentos apagados\n");
+  kbd_log("[BLE] pareamentos apagados\n");
 }
 
 void bleteclado_definir_bateria(uint8_t porcento) {

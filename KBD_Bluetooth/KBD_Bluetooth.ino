@@ -88,8 +88,8 @@ static void botao_boot() {
 }
 
 void setup() {
-  log_iniciar();
-  log_printf("\n=== KBD_Bluetooth v0.1.0 ===\n");
+  kbd_log_iniciar();
+  kbd_log("\n=== KBD_Bluetooth v0.1.0 ===\n");
   pinMode(BOTAO_BOOT_PIN, INPUT_PULLUP);
   rgbLedWrite(LED_RGB_PIN, 0, 0, 0);
 

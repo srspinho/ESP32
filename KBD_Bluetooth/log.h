@@ -11,7 +11,7 @@
    evita mensagens misturadas, e, se a fila de envio estiver cheia, a
    mensagem e descartada em vez de travar quem chamou.
    ===================================================================== */
-void log_iniciar();
-void log_printf(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
+void kbd_log_iniciar();
+void kbd_log(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
 
 #endif  // LOG_H

@@ -51,7 +51,7 @@ static char             s_resumo[32] = "-";
    ===================================================================== */
 static void cb_controle(usb_transfer_t* t) {
   if (t->status != USB_TRANSFER_STATUS_COMPLETED)
-    log_printf("[USB] pedido de controle falhou (status %d)\n", (int)t->status);
+    kbd_log("[USB] pedido de controle falhou (status %d)\n", (int)t->status);
   s_disp.ctrl_ocupado = false;
 }
 
@@ -124,7 +124,7 @@ static void cb_relatorio(usb_transfer_t* t) {
     if (USB_DEPURAR && n > 0) {
       char hex[3 * 16 + 1] = { 0 };
       for (int i = 0; i < n && i < 16; i++) snprintf(hex + 3 * i, 4, "%02X ", t->data_buffer[i]);
-      log_printf("[USB] itf %u, %d bytes: %s\n", itf->numero, n, hex);
+      kbd_log("[USB] itf %u, %d bytes: %s\n", itf->numero, n, hex);
     }
     if (itf->teclado_boot && n == 8 && s_fila) {
       RelatorioTeclado r;
@@ -133,7 +133,7 @@ static void cb_relatorio(usb_transfer_t* t) {
     }
   } else if (t->status != USB_TRANSFER_STATUS_CANCELED &&
              t->status != USB_TRANSFER_STATUS_NO_DEVICE) {
-    log_printf("[USB] itf %u: erro na leitura (status %d)\n", itf->numero, (int)t->status);
+    kbd_log("[USB] itf %u: erro na leitura (status %d)\n", itf->numero, (int)t->status);
   }
 
   // Continua lendo enquanto o teclado estiver montado
@@ -185,19 +185,19 @@ static void desmontar() {
     RelatorioTeclado r = {};
     xQueueSend(s_fila, &r, 0);
   }
-  log_printf("[USB] teclado desconectado\n");
+  kbd_log("[USB] teclado desconectado\n");
 }
 
 static void montar(uint8_t endereco) {
   Dispositivo& d = s_disp;
   if (d.aberto) {
-    log_printf("[USB] ja ha um teclado; dispositivo %u ignorado (sem suporte a hub)\n", endereco);
+    kbd_log("[USB] ja ha um teclado; dispositivo %u ignorado (sem suporte a hub)\n", endereco);
     return;
   }
   memset(&d, 0, sizeof(d));
 
   if (usb_host_device_open(s_cliente, endereco, &d.hdl) != ESP_OK) {
-    log_printf("[USB] falha ao abrir o dispositivo %u\n", endereco);
+    kbd_log("[USB] falha ao abrir o dispositivo %u\n", endereco);
     return;
   }
 
@@ -211,7 +211,7 @@ static void montar(uint8_t endereco) {
   d.vid = dd->idVendor;
   d.pid = dd->idProduct;
   if (dd->bDeviceClass == 0x09) {
-    log_printf("[USB] %04X:%04X e um hub: ainda nao suportado\n", d.vid, d.pid);
+    kbd_log("[USB] %04X:%04X e um hub: ainda nao suportado\n", d.vid, d.pid);
     usb_host_device_close(s_cliente, d.hdl);
     return;
   }
@@ -233,7 +233,7 @@ static void montar(uint8_t endereco) {
       memset(atual, 0, sizeof(*atual));
       atual->numero = num;
       atual->teclado_boot = (sub == 0x01 && proto == 0x01);
-      log_printf("[USB] itf %u: HID subclasse %u protocolo %u%s\n", num, sub, proto,
+      kbd_log("[USB] itf %u: HID subclasse %u protocolo %u%s\n", num, sub, proto,
                  atual->teclado_boot ? " (teclado boot)" : "");
     } else if (tipo == 0x05 && tam >= 7 && atual && !atual->endpoint) {   // ENDPOINT
       const uint8_t end = p[i + 2], attr = p[i + 3];
@@ -254,7 +254,7 @@ static void montar(uint8_t endereco) {
     Interface& itf = d.itf[i];
     if (!itf.teclado_boot) continue;   // v0.1: so teclados boot (midia: proxima versao)
     if (usb_host_interface_claim(s_cliente, d.hdl, itf.numero, 0) != ESP_OK) {
-      log_printf("[USB] itf %u: nao foi possivel reivindicar\n", itf.numero);
+      kbd_log("[USB] itf %u: nao foi possivel reivindicar\n", itf.numero);
       continue;
     }
     const uint16_t tam = itf.tam_pacote ? itf.tam_pacote : 8;
@@ -274,14 +274,14 @@ static void montar(uint8_t endereco) {
   }
 
   if (!teclados) {
-    log_printf("[USB] %04X:%04X nao tem interface de teclado\n", d.vid, d.pid);
+    kbd_log("[USB] %04X:%04X nao tem interface de teclado\n", d.vid, d.pid);
     desmontar();
     return;
   }
   d.leds_pendente = true;   // sincroniza Caps/Num Lock com o PC
   snprintf(s_resumo, sizeof(s_resumo), "%04X:%04X boot", d.vid, d.pid);
   s_conectado = true;
-  log_printf("[USB] teclado %s montado\n", s_resumo);
+  kbd_log("[USB] teclado %s montado\n", s_resumo);
 }
 
 /* =====================================================================
@@ -316,7 +316,7 @@ static void tarefa_cliente(void*) {
   cfg.async.client_event_callback = cb_cliente;
   cfg.async.callback_arg          = nullptr;
   if (usb_host_client_register(&cfg, &s_cliente) != ESP_OK) {
-    log_printf("[USB] falha ao registrar o cliente\n");
+    kbd_log("[USB] falha ao registrar o cliente\n");
     vTaskDelete(nullptr);
     return;
   }
@@ -347,12 +347,12 @@ void usbteclado_iniciar(QueueHandle_t fila) {
   cfg.skip_phy_setup = false;
   cfg.intr_flags     = ESP_INTR_FLAG_LEVEL1;
   if (usb_host_install(&cfg) != ESP_OK) {
-    log_printf("[USB] falha ao instalar o USB host\n");
+    kbd_log("[USB] falha ao instalar o USB host\n");
     return;
   }
   xTaskCreatePinnedToCore(tarefa_daemon,  "usb_daemon",  4096, nullptr, 5, nullptr, 0);
   xTaskCreatePinnedToCore(tarefa_cliente, "usb_cliente", 6144, nullptr, 5, nullptr, 0);
-  log_printf("[USB] host iniciado: aguardando teclado\n");
+  kbd_log("[USB] host iniciado: aguardando teclado\n");
 }
 
 void usbteclado_definir_leds(uint8_t leds) {
