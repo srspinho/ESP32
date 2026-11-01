@@ -1,9 +1,9 @@
 /* =====================================================================
-   KBD_Bluetooth  v0.1.1
+   KBD_Bluetooth  v0.2.0
    Transforma um teclado USB com fio em teclado Bluetooth, contando as
    teclas no caminho.
 
-   Placa: Waveshare ESP32-S3-LCD-1.47B (USB-C femea, LCD 172x320)
+   Placa: Waveshare ESP32-S3-Touch-LCD-1.47 (USB-C, LCD JD9853 172x320)
 
    [Teclado USB] --USB host--> [ESP32-S3] --Bluetooth LE (HID)--> [PC]
                                    |
@@ -32,6 +32,11 @@
 
 static QueueHandle_t s_fila_usb = nullptr;
 static uint8_t       s_leds = 0;   // Caps/Num Lock vindos do PC
+
+// LED RGB (WS2812). Esta placa nao tem: com LED_RGB_PIN = -1 nao faz nada.
+static void led_rgb(uint8_t r, uint8_t g, uint8_t b) {
+  if (LED_RGB_PIN >= 0) rgbLedWrite(LED_RGB_PIN, r, g, b);
+}
 
 /* ---------- LED RGB de status ----------
    vermelho fixo  : sem teclado no USB
@@ -63,7 +68,7 @@ static void led_status(bool tecla) {
   const uint32_t cor = ((uint32_t)r << 16) | ((uint32_t)g << 8) | bl;
   if (cor != ultima_cor) {
     ultima_cor = cor;
-    rgbLedWrite(LED_RGB_PIN, r, g, bl);
+    led_rgb(r, g, bl);
   }
 }
 
@@ -89,16 +94,16 @@ static void botao_boot() {
 
 void setup() {
   kbd_log_iniciar();
-  kbd_log("\n=== KBD_Bluetooth v0.1.1 ===\n");
+  kbd_log("\n=== KBD_Bluetooth v0.2.0 ===\n");
   pinMode(BOTAO_BOOT_PIN, INPUT_PULLUP);
-  rgbLedWrite(LED_RGB_PIN, 0, 0, 0);
+  led_rgb(0, 0, 0);
 
   if (!tela_iniciar()) {
-    // LCD nao respondeu: pisca roxo 5 vezes (o resto continua funcionando)
+    // LCD nao respondeu: pisca roxo 5 vezes, se houver LED (o resto continua funcionando)
     for (int i = 0; i < 5; i++) {
-      rgbLedWrite(LED_RGB_PIN, LED_RGB_BRILHO, 0, LED_RGB_BRILHO);
+      led_rgb(LED_RGB_BRILHO, 0, LED_RGB_BRILHO);
       delay(200);
-      rgbLedWrite(LED_RGB_PIN, 0, 0, 0);
+      led_rgb(0, 0, 0);
       delay(200);
     }
   }
