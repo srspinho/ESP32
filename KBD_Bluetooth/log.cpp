@@ -5,12 +5,12 @@
 
 static SemaphoreHandle_t s_mutex = nullptr;
 
-void log_iniciar() {
+void kbd_log_iniciar() {
   Serial.begin(115200);
   s_mutex = xSemaphoreCreateMutex();
 }
 
-void log_printf(const char* fmt, ...) {
+void kbd_log(const char* fmt, ...) {
   char buf[192];
   va_list ap;
   va_start(ap, fmt);
