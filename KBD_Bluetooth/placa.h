@@ -31,6 +31,15 @@ constexpr int16_t LCD_ALTURA_NATIVA  = 320;
 constexpr int16_t LCD_OFFSET_COLUNA  = 34;
 constexpr int16_t LCD_OFFSET_LINHA   = 0;
 constexpr uint8_t LCD_ROTACAO        = 1;     // 1 = deitado (320 x 172)
+
+// Barramento SPI do LCD:
+//   true : Arduino_HWSPI (usa a biblioteca SPI do core; funciona no core 3.x)
+//   false: Arduino_ESP32SPI (registradores diretos; mais rapido, mas
+//          sensivel a versao do core e da Arduino_GFX)
+constexpr bool     LCD_BARRAMENTO_HWSPI = true;
+constexpr uint32_t LCD_SPI_HZ           = 40000000UL;  // se a imagem vier com lixo: 20000000
+// Ao ligar, pinta a tela de vermelho, verde e azul (diagnostico).
+constexpr bool     LCD_TESTE_CORES      = true;
 constexpr uint8_t LCD_BRILHO         = 180;   // 0..255 (PWM do backlight)
 
 /* ---------- LED RGB (WS2812) ---------- */

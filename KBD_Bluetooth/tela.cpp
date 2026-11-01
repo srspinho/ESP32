@@ -1,5 +1,6 @@
 #include "tela.h"
 #include "placa.h"
+#include "log.h"
 
 #include <Arduino_GFX_Library.h>
 
@@ -20,19 +21,41 @@ static Arduino_GFX*     s_gfx = nullptr;
 static int16_t W = 320, H = 172;
 static constexpr int16_t BARRA_H = 26;
 
-void tela_iniciar() {
-  s_bus = new Arduino_ESP32SPI(LCD_PIN_DC, LCD_PIN_CS, LCD_PIN_SCLK, LCD_PIN_MOSI, GFX_NOT_DEFINED);
+bool tela_iniciar() {
+  // Backlight apagado ate a primeira imagem estar pronta
+  pinMode(LCD_PIN_BL, OUTPUT);
+  digitalWrite(LCD_PIN_BL, LOW);
+
+  if (LCD_BARRAMENTO_HWSPI) {
+    // Usa a biblioteca SPI do proprio core: funciona em qualquer versao do core
+    s_bus = new Arduino_HWSPI(LCD_PIN_DC, LCD_PIN_CS, LCD_PIN_SCLK, LCD_PIN_MOSI, GFX_NOT_DEFINED);
+  } else {
+    // Acesso direto aos registradores do SPI (mais rapido, mais sensivel a versao do core)
+    s_bus = new Arduino_ESP32SPI(LCD_PIN_DC, LCD_PIN_CS, LCD_PIN_SCLK, LCD_PIN_MOSI, GFX_NOT_DEFINED, FSPI);
+  }
   s_gfx = new Arduino_ST7789(s_bus, LCD_PIN_RST, LCD_ROTACAO, true /* IPS */,
                              LCD_LARGURA_NATIVA, LCD_ALTURA_NATIVA,
                              LCD_OFFSET_COLUNA, LCD_OFFSET_LINHA,
                              LCD_OFFSET_COLUNA, LCD_OFFSET_LINHA);
-  s_gfx->begin();
+  const bool ok = s_gfx->begin(LCD_SPI_HZ);
+  kbd_log("[TELA] begin %s (%s, %lu Hz)\n", ok ? "ok" : "FALHOU",
+          LCD_BARRAMENTO_HWSPI ? "HWSPI" : "ESP32SPI", (unsigned long)LCD_SPI_HZ);
   W = s_gfx->width();
   H = s_gfx->height();
-  s_gfx->fillScreen(PRETO);
 
-  ledcAttach(LCD_PIN_BL, 5000, 8);   // backlight por PWM (core ESP32 3.x)
-  ledcWrite(LCD_PIN_BL, LCD_BRILHO);
+  // Teste de cores: vermelho, verde, azul. Se aparecerem, o LCD esta ok.
+  if (LCD_TESTE_CORES) {
+    s_gfx->fillScreen(VERMELHO);
+    analogWrite(LCD_PIN_BL, LCD_BRILHO);
+    delay(400);
+    s_gfx->fillScreen(VERDE);
+    delay(400);
+    s_gfx->fillScreen(0x001F);   // azul puro
+    delay(400);
+  }
+  s_gfx->fillScreen(PRETO);
+  analogWrite(LCD_PIN_BL, LCD_BRILHO);   // backlight por PWM
+  return ok;
 }
 
 // Texto centralizado numa faixa, apagando o fundo da faixa antes

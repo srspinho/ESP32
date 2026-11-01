@@ -1,5 +1,5 @@
 /* =====================================================================
-   KBD_Bluetooth  v0.1.0
+   KBD_Bluetooth  v0.1.1
    Transforma um teclado USB com fio em teclado Bluetooth, contando as
    teclas no caminho.
 
@@ -89,11 +89,19 @@ static void botao_boot() {
 
 void setup() {
   kbd_log_iniciar();
-  kbd_log("\n=== KBD_Bluetooth v0.1.0 ===\n");
+  kbd_log("\n=== KBD_Bluetooth v0.1.1 ===\n");
   pinMode(BOTAO_BOOT_PIN, INPUT_PULLUP);
   rgbLedWrite(LED_RGB_PIN, 0, 0, 0);
 
-  tela_iniciar();
+  if (!tela_iniciar()) {
+    // LCD nao respondeu: pisca roxo 5 vezes (o resto continua funcionando)
+    for (int i = 0; i < 5; i++) {
+      rgbLedWrite(LED_RGB_PIN, LED_RGB_BRILHO, 0, LED_RGB_BRILHO);
+      delay(200);
+      rgbLedWrite(LED_RGB_PIN, 0, 0, 0);
+      delay(200);
+    }
+  }
   tela_mensagem("KBD Bluetooth", 0xFFFF);
 
   estat_iniciar();
