@@ -4,33 +4,39 @@
 #include <Arduino.h>
 
 /* =====================================================================
-   PLACA: Waveshare ESP32-S3-LCD-1.47B (versao com USB-C femea)
-   https://www.waveshare.com/wiki/ESP32-S3-LCD-1.47B
+   PLACA: Waveshare ESP32-S3-Touch-LCD-1.47
+   https://www.waveshare.com/esp32-s3-touch-lcd-1.47.htm
+   https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-1.47
+
+   LCD de 1.47" (172 x 320) com controlador JD9853, touch capacitivo
+   AXS5106L, microSD por SPI e USB-C ligado a USB nativa do ESP32-S3.
+   Esta placa NAO tem LED RGB.
 
    Todos os pinos fixos da placa ficam aqui. Se algum detalhe da sua
-   revisao for diferente (offset de coluna do LCD, pino do backlight...),
-   e so neste arquivo que se mexe.
-
-   Os pinos marcados "A CONFIRMAR" vieram da versao 1.47 (USB-A macho),
-   porque a tabela da 1.47B nao lista MOSI/SCLK. Se a tela ficar preta
-   com o backlight aceso, confira MOSI e SCLK no esquematico.
+   revisao for diferente (offset de coluna, rotacao...), e so neste
+   arquivo que se mexe.
    ===================================================================== */
 
-/* ---------- LCD ST7789, 172 x 320, SPI ---------- */
-constexpr int8_t LCD_PIN_MOSI = 45;   // A CONFIRMAR na 1.47B
-constexpr int8_t LCD_PIN_SCLK = 40;   // A CONFIRMAR na 1.47B
-constexpr int8_t LCD_PIN_CS   = 42;
-constexpr int8_t LCD_PIN_DC   = 41;
-constexpr int8_t LCD_PIN_RST  = 39;
-constexpr int8_t LCD_PIN_BL   = 46;   // 1.47B: GPIO46 (na 1.47 "pendrive" era GPIO48)
+/* ---------- LCD JD9853, 172 x 320, SPI ---------- */
+constexpr int8_t LCD_PIN_MOSI = 39;
+constexpr int8_t LCD_PIN_SCLK = 38;
+constexpr int8_t LCD_PIN_CS   = 21;
+constexpr int8_t LCD_PIN_DC   = 45;
+constexpr int8_t LCD_PIN_RST  = 40;
+constexpr int8_t LCD_PIN_BL   = 46;
 
 constexpr int16_t LCD_LARGURA_NATIVA = 172;
 constexpr int16_t LCD_ALTURA_NATIVA  = 320;
-// O ST7789 tem RAM de 240 colunas; o vidro de 172 comeca na coluna 34.
+// A RAM do controlador tem 240 colunas; o vidro de 172 comeca na coluna 34.
 // Se aparecer uma faixa de lixo na lateral, e este numero.
 constexpr int16_t LCD_OFFSET_COLUNA  = 34;
 constexpr int16_t LCD_OFFSET_LINHA   = 0;
-constexpr uint8_t LCD_ROTACAO        = 1;     // 1 = deitado (320 x 172)
+constexpr uint8_t LCD_ROTACAO        = 1;     // 1 ou 3 = deitado (320 x 172)
+
+// Inicializacao do controlador:
+//   true : sequencia do fabricante para o JD9853 (o desta placa)
+//   false: sequencia generica do ST7789 (o JD9853 aceita a maior parte dela)
+constexpr bool     LCD_INIT_JD9853      = true;
 
 // Barramento SPI do LCD:
 //   true : Arduino_HWSPI (usa a biblioteca SPI do core; funciona no core 3.x)
@@ -40,10 +46,25 @@ constexpr bool     LCD_BARRAMENTO_HWSPI = true;
 constexpr uint32_t LCD_SPI_HZ           = 40000000UL;  // se a imagem vier com lixo: 20000000
 // Ao ligar, pinta a tela de vermelho, verde e azul (diagnostico).
 constexpr bool     LCD_TESTE_CORES      = true;
-constexpr uint8_t LCD_BRILHO         = 180;   // 0..255 (PWM do backlight)
+constexpr uint8_t  LCD_BRILHO           = 180;   // 0..255 (PWM do backlight)
 
-/* ---------- LED RGB (WS2812) ---------- */
-constexpr int8_t  LED_RGB_PIN    = 38;
+/* ---------- Touch AXS5106L (I2C) - ainda nao usado ---------- */
+constexpr int8_t  TOUCH_PIN_SDA = 42;
+constexpr int8_t  TOUCH_PIN_SCL = 41;
+constexpr int8_t  TOUCH_PIN_RST = 47;
+constexpr int8_t  TOUCH_PIN_INT = 48;
+constexpr uint8_t TOUCH_ENDERECO = 0x63;
+
+/* ---------- microSD (SPI) - ainda nao usado ---------- */
+constexpr int8_t SD_PIN_CS   = 14;
+constexpr int8_t SD_PIN_MOSI = 15;
+constexpr int8_t SD_PIN_SCLK = 16;
+constexpr int8_t SD_PIN_MISO = 17;
+
+/* ---------- LED RGB ----------
+   Esta placa nao tem LED RGB: -1 desliga o LED de status. Se um dia
+   ligar um WS2812 externo, ponha o GPIO aqui (nunca 38: e o SCLK do LCD). */
+constexpr int8_t  LED_RGB_PIN    = -1;
 constexpr uint8_t LED_RGB_BRILHO = 12;        // 0..255; o LED e muito forte
 
 /* ---------- Botao BOOT ----------

@@ -6,7 +6,7 @@ teclas, como o [KBD_AMOLED_164](https://github.com/srspinho/KBD_AMOLED_164), só
 ```
 [Teclado USB] --USB host--> [ESP32-S3] --Bluetooth LE (HID)--> [PC / notebook / tablet / celular]
                                 |
-                      contagem, tela LCD, LED RGB
+                      contagem, tela LCD
 ```
 
 **Nada é instalado no PC.** Para o computador, o dispositivo é só um teclado Bluetooth comum.
@@ -24,22 +24,26 @@ as duas coisas.
 
 ## Placa
 
-**Waveshare ESP32-S3-LCD-1.47B**: versão com **USB-C fêmea**, LCD ST7789 de 172×320, LED RGB,
-slot microSD e IMU.
+**Waveshare [ESP32-S3-Touch-LCD-1.47](https://www.waveshare.com/esp32-s3-touch-lcd-1.47.htm)**:
+USB-C ligado à USB nativa do ESP32-S3, LCD de 1,47" (172×320) com controlador **JD9853**, touch
+capacitivo AXS5106L e slot microSD. **Não tem LED RGB.**
 
 | Função | GPIO |
 |---|---|
-| LCD MOSI / SCLK | 45 / 40 (**a confirmar** na 1.47B: vieram da versão 1.47) |
-| LCD CS / DC / RST | 42 / 41 / 39 |
+| LCD MOSI / SCLK | 39 / 38 |
+| LCD CS / DC / RST | 21 / 45 / 40 |
 | LCD backlight | 46 |
-| LED RGB (WS2812) | 38 |
+| Touch AXS5106L (ainda não usado): SDA / SCL / RST / INT | 42 / 41 / 47 / 48 (endereço 0x63) |
+| microSD por SPI (ainda não usado): CS / MOSI / SCLK / MISO | 14 / 15 / 16 / 17 |
 | Botão BOOT | 0 |
 | USB nativa (teclado) | 19 (D−) / 20 (D+), no próprio USB-C |
 | Log serial (UART0) | 43 (TX) / 44 (RX) |
-| microSD (ainda não usado) | CLK 14, CMD 15, D0 16, D1 18, D2 17, D3 21 |
 
-Todos os pinos ficam em **`placa.h`**. Se a tela ficar preta com o backlight aceso, confira
-MOSI e SCLK no esquemático da 1.47B.
+Todos os pinos ficam em **`placa.h`**. Se a imagem aparecer espelhada ou de cabeça para baixo,
+troque `LCD_ROTACAO` (1 ↔ 3). Se aparecer uma faixa de lixo na lateral, ajuste `LCD_OFFSET_COLUNA`.
+
+> As versões até a v0.1.1 estavam configuradas para outra placa, a ESP32-S3-LCD-1.47B (ST7789,
+> pinos diferentes). Por isso a tela ficava vazia com o backlight aceso.
 
 ## Ligação do teclado e alimentação
 
@@ -95,17 +99,21 @@ sozinha. Para gravar de novo:
 
 ## Uso
 
-1. Ligue o teclado e a alimentação. O **LED azul piscando** quer dizer que a placa está esperando
-   o pareamento.
+1. Ligue o teclado e a alimentação. Na barra de cima da tela aparece **"BT parear"** (cinza):
+   a placa está esperando o pareamento.
 2. No PC, procure dispositivos Bluetooth e escolha **"KBD Bluetooth"**.
-3. Quando o LED fica **verde**, é só digitar.
+3. Quando aparecer **"BT OK"** (azul) e **"USB OK"** (verde), é só digitar.
 
-| LED | Significado |
+| Barra de cima | Significado |
 |---|---|
-| vermelho | sem teclado no USB |
-| azul piscando | esperando o PC conectar/parear |
-| amarelo | conectado, terminando o pareamento |
-| verde (apaga um instante a cada tecla) | pronto |
+| `USB --` vermelho | sem teclado no USB |
+| `BT parear` cinza | esperando o PC conectar/parear |
+| `BT ...` amarelo | conectado, terminando o pareamento |
+| `BT OK` azul | pronto |
+| `A` / `1` amarelos | Caps Lock / Num Lock ligados |
+
+Esta placa não tem LED RGB. O firmware tem o LED de status pronto: se você ligar um WS2812
+externo, basta pôr o GPIO dele em `LED_RGB_PIN`, no `placa.h`.
 
 **Parear com outro computador:** segure o **BOOT por 3 s** com o firmware rodando. Os pareamentos
 são apagados e a placa volta a anunciar.
@@ -125,23 +133,24 @@ cada 5 min e sempre que a digitação para por 30 s, nunca a cada tecla.
 
 | Arquivo | Função |
 |---|---|
-| `KBD_Bluetooth.ino` | setup/loop, LED de status, botão BOOT |
+| `KBD_Bluetooth.ino` | setup/loop, LED de status (opcional), botão BOOT |
 | `placa.h` | pinos e ajustes da placa |
 | `usb_teclado.*` | USB host (driver `usb_host` do ESP-IDF): lê o teclado |
 | `ble_teclado.*` | teclado BLE HID (NimBLE): manda as teclas ao PC |
 | `estatisticas.*` | contagem de teclas, WPM, correção, gravação na flash |
-| `tela.*` | LCD ST7789 (Arduino_GFX) |
+| `tela.*` | LCD JD9853 (Arduino_GFX, com a inicialização do fabricante) |
 | `log.*` | log pela UART0, seguro entre tarefas |
 
 ## Situação e próximos passos
 
-**v0.1.0** é a primeira versão. **Ainda não foi testada na placa**, e o código não foi compilado
-neste ambiente.
+**v0.2.0**: configurada para a ESP32-S3-Touch-LCD-1.47. Compila no core 3.3.11, e o Bluetooth já
+aparece no Windows. A tela com o JD9853 e a leitura do teclado pelo USB ainda não foram testadas.
 
 - [x] USB host lendo teclado no formato *boot* (praticamente todo teclado comum)
 - [x] Teclado Bluetooth LE com pareamento salvo e LEDs Caps/Num Lock
 - [x] Contagem: sessão, total, por tecla, WPM, taxa de correção
-- [x] Tela de status e LED RGB
+- [x] Tela de status
+- [ ] Touch (AXS5106L): navegar por telas e menu
 - [ ] Teclas de mídia e teclados NKRO/gamer (portar o parser de descritor HID do KBD_AMOLED_164)
 - [ ] Teclados com hub interno
 - [ ] Relógio (Wi-Fi/NTP) para a contagem **do dia**
