@@ -22,7 +22,7 @@ struct EstadoTela {
   uint8_t     leds;          // bits HID: 0 = Num Lock, 1 = Caps Lock
 };
 
-void tela_iniciar();
+bool tela_iniciar();   // false = o LCD nao respondeu ao begin()
 void tela_mensagem(const char* texto, uint16_t cor);   // aviso em tela cheia
 void tela_atualizar(const EstadoTela& st, const Estatisticas& e, bool forcar);
 
