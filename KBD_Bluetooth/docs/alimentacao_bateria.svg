@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640" width="1000" height="640" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>KBD_Bluetooth: alimentação por bateria</title>
+  <defs>
+    <style>
+      .caixa  { fill: #f7f9fc; stroke: #34495e; stroke-width: 2; rx: 8; }
+      .placa  { fill: #eef6ee; stroke: #2e7d32; stroke-width: 2.5; }
+      .tit    { font-size: 15px; font-weight: 700; fill: #1f2d3d; }
+      .sub    { font-size: 12px; fill: #4a5a6a; }
+      .pino   { font-size: 12px; fill: #1f2d3d; }
+      .aviso  { font-size: 12px; fill: #c0392b; font-weight: 700; }
+      .nota   { font-size: 12.5px; fill: #1f2d3d; }
+      .pos    { stroke: #d32f2f; stroke-width: 3; fill: none; }
+      .neg    { stroke: #212121; stroke-width: 3; fill: none; }
+      .sinal  { stroke: #1565c0; stroke-width: 2.5; fill: none; }
+      .usb    { stroke: #6a1b9a; stroke-width: 4; fill: none; }
+      .no     { fill: #d32f2f; }
+      .no_n   { fill: #212121; }
+      .no_s   { fill: #1565c0; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1000" height="640" fill="#ffffff"/>
+  <text x="500" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#1f2d3d">KBD_Bluetooth: alimentação por bateria</text>
+  <text x="500" y="54" text-anchor="middle" class="sub">LiPo 1S → carregador TP4056 → chave → boost MT3608 (5,1 V) → VBUS da placa → USB-C → teclado</text>
+
+  <!-- ===== Bateria ===== -->
+  <rect class="caixa" x="25" y="130" width="125" height="130"/>
+  <text x="87" y="155" text-anchor="middle" class="tit">Bateria LiPo</text>
+  <text x="87" y="173" text-anchor="middle" class="sub">1 célula, 3,7 V</text>
+  <text x="82" y="189" text-anchor="middle" class="sub">1500–3000 mAh</text>
+  <!-- símbolo de pilha -->
+  <line x1="70" y1="212" x2="104" y2="212" stroke="#212121" stroke-width="3"/>
+  <line x1="78" y1="222" x2="96" y2="222" stroke="#212121" stroke-width="5"/>
+  <line x1="70" y1="234" x2="104" y2="234" stroke="#212121" stroke-width="3"/>
+  <line x1="78" y1="244" x2="96" y2="244" stroke="#212121" stroke-width="5"/>
+  <text x="144" y="176" text-anchor="end" class="pino" fill="#d32f2f">+</text>
+  <text x="144" y="226" text-anchor="end" class="pino">−</text>
+
+  <!-- ===== TP4056 ===== -->
+  <rect class="caixa" x="200" y="120" width="165" height="150"/>
+  <text x="282" y="142" text-anchor="middle" class="tit">Módulo TP4056</text>
+  <text x="282" y="159" text-anchor="middle" class="sub">com proteção (DW01)</text>
+  <text x="208" y="184" class="pino">B+</text>
+  <text x="208" y="234" class="pino">B−</text>
+  <text x="357" y="184" text-anchor="end" class="pino">OUT+</text>
+  <text x="357" y="234" text-anchor="end" class="pino">OUT−</text>
+  <!-- porta de carga -->
+  <rect x="252" y="96" width="60" height="24" rx="6" fill="#ede7f6" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="282" y="113" text-anchor="middle" class="pino">USB-C</text>
+  <text x="282" y="86" text-anchor="middle" class="sub">carregar aqui (5 V)</text>
+
+  <!-- fios bateria → TP4056 -->
+  <path class="pos" d="M150 180 H200"/>
+  <path class="neg" d="M150 230 H200"/>
+
+  <!-- ===== Chave ===== -->
+  <path class="pos" d="M365 180 H405"/>
+  <circle cx="408" cy="180" r="4" fill="#ffffff" stroke="#212121" stroke-width="2"/>
+  <line x1="411" y1="178" x2="446" y2="160" stroke="#212121" stroke-width="3"/>
+  <circle cx="452" cy="180" r="4" fill="#ffffff" stroke="#212121" stroke-width="2"/>
+  <text x="430" y="148" text-anchor="middle" class="tit">Chave</text>
+  <text x="430" y="206" text-anchor="middle" class="sub">liga/desliga</text>
+  <path class="pos" d="M456 180 H530"/>
+  <circle class="no" cx="490" cy="180" r="5"/>
+
+  <!-- GND TP4056 → MT3608 -->
+  <path class="neg" d="M365 230 H530"/>
+
+  <!-- ===== MT3608 ===== -->
+  <rect class="caixa" x="530" y="120" width="165" height="150"/>
+  <text x="612" y="142" text-anchor="middle" class="tit">Boost MT3608</text>
+  <text x="612" y="159" text-anchor="middle" class="sub">saída ajustada em 5,1 V</text>
+  <text x="538" y="184" class="pino">VIN+</text>
+  <text x="538" y="234" class="pino">VIN−</text>
+  <text x="687" y="184" text-anchor="end" class="pino">VOUT+</text>
+  <text x="687" y="234" text-anchor="end" class="pino">VOUT−</text>
+  <text x="612" y="252" text-anchor="middle" class="aviso">ajuste o trimpot</text>
+  <text x="612" y="265" text-anchor="middle" class="aviso">ANTES de ligar à placa</text>
+
+  <!-- ===== Placa Waveshare ===== -->
+  <rect class="placa" x="760" y="90" width="215" height="300" rx="10"/>
+  <text x="867" y="114" text-anchor="middle" class="tit">ESP32-S3-Touch-LCD-1.47</text>
+  <text x="867" y="131" text-anchor="middle" class="sub">barra de pinos P1</text>
+  <text x="770" y="184" class="pino">pino 1 · VBUS</text>
+  <text x="770" y="234" class="pino">pino 3 · GND</text>
+  <text x="770" y="334" class="pino">pino 13 · IO2 (ADC)</text>
+  <rect x="868" y="268" width="100" height="38" rx="5" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+  <text x="918" y="283" text-anchor="middle" class="aviso">pino 2 · VBAT</text>
+  <text x="918" y="299" text-anchor="middle" class="aviso">NÃO LIGAR</text>
+  <!-- USB-C da placa -->
+  <rect x="837" y="390" width="60" height="24" rx="6" fill="#ede7f6" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="867" y="407" text-anchor="middle" class="pino">USB-C</text>
+
+  <!-- fios MT3608 → placa -->
+  <path class="pos" d="M695 180 H760"/>
+  <path class="neg" d="M695 230 H760"/>
+
+  <!-- ===== Divisor de tensão (medir a bateria) ===== -->
+  <path class="pos" d="M490 180 V214"/>
+  <!-- salto sobre o fio GND -->
+  <path class="pos" d="M490 214 A16 16 0 0 1 490 246"/>
+  <path class="pos" d="M490 246 V290"/>
+  <rect x="478" y="290" width="24" height="46" fill="#ffffff" stroke="#212121" stroke-width="2"/>
+  <text x="510" y="312" class="pino">R1</text>
+  <text x="510" y="327" class="sub">100 kΩ</text>
+  <path class="sinal" d="M490 336 V370"/>
+  <circle class="no_s" cx="490" cy="370" r="5"/>
+  <rect x="478" y="370" width="24" height="46" fill="#ffffff" stroke="#212121" stroke-width="2"/>
+  <text x="510" y="392" class="pino">R2</text>
+  <text x="510" y="407" class="sub">100 kΩ</text>
+  <path class="neg" d="M490 416 V440"/>
+  <line x1="474" y1="440" x2="506" y2="440" stroke="#212121" stroke-width="3"/>
+  <line x1="480" y1="447" x2="500" y2="447" stroke="#212121" stroke-width="3"/>
+  <line x1="486" y1="454" x2="494" y2="454" stroke="#212121" stroke-width="3"/>
+  <!-- capacitor -->
+  <path class="sinal" d="M490 370 H430 V385"/>
+  <line x1="414" y1="385" x2="446" y2="385" stroke="#212121" stroke-width="3"/>
+  <line x1="414" y1="395" x2="446" y2="395" stroke="#212121" stroke-width="3"/>
+  <path class="neg" d="M430 395 V415"/>
+  <line x1="416" y1="415" x2="444" y2="415" stroke="#212121" stroke-width="3"/>
+  <line x1="421" y1="422" x2="439" y2="422" stroke="#212121" stroke-width="3"/>
+  <line x1="426" y1="429" x2="434" y2="429" stroke="#212121" stroke-width="3"/>
+  <text x="402" y="394" text-anchor="end" class="pino">C1 100 nF</text>
+  <!-- sinal até IO2 -->
+  <path class="sinal" d="M490 370 H735 V330 H760"/>
+  <text x="620" y="362" text-anchor="middle" class="sub">metade da tensão da bateria (máx. 2,1 V)</text>
+
+  <!-- ===== Teclado ===== -->
+  <path class="usb" d="M867 414 V450"/>
+  <rect class="caixa" x="767" y="450" width="200" height="44"/>
+  <text x="867" y="469" text-anchor="middle" class="tit">Adaptador OTG</text>
+  <text x="867" y="486" text-anchor="middle" class="sub">USB-C macho → USB-A fêmea</text>
+  <path class="usb" d="M867 494 V520"/>
+  <rect class="caixa" x="767" y="520" width="200" height="44"/>
+  <text x="867" y="547" text-anchor="middle" class="tit">Teclado USB</text>
+
+  <!-- ===== Notas ===== -->
+  <text x="25" y="492" class="tit">Regras</text>
+  <text x="25" y="514" class="nota">1. Nunca ligue o cabo do PC na placa com a chave ligada: os 5 V do boost voltariam para o PC.</text>
+  <text x="25" y="534" class="nota">2. Para gravar: chave desligada → tira o teclado → liga o PC no USB-C da placa.</text>
+  <text x="25" y="554" class="nota">3. Não use o VBAT da placa: o carregador dela carregaria a bateria com a energia do próprio boost.</text>
+  <text x="25" y="574" class="nota">4. Para carregar: USB-C do TP4056 (a placa pode ficar ligada enquanto carrega).</text>
+  <text x="25" y="594" class="nota">5. Todos os GND são o mesmo ponto: OUT− do TP4056, VIN−/VOUT− do boost e GND da placa.</text>
+  <text x="25" y="620" class="sub">Legenda: vermelho = positivo · preto = GND · azul = sinal · roxo = USB</text>
+</svg>

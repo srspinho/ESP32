@@ -20,6 +20,8 @@ struct EstadoTela {
   bool        usb_ok;
   const char* usb_resumo;
   uint8_t     leds;          // bits HID: 0 = Num Lock, 1 = Caps Lock
+  const char* usb_diag;      // ultimo evento do USB (linha de diagnostico)
+  uint32_t    usb_relatorios;
 };
 
 bool tela_iniciar();   // false = o LCD nao respondeu ao begin()

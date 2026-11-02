@@ -208,11 +208,26 @@ void tela_atualizar(const EstadoTela& st, const Estatisticas& e, bool forcar) {
   if (forcar || primeira || st.ble != ult_st.ble || st.usb_ok != ult_st.usb_ok || st.leds != ult_st.leds)
     desenhar_barra(st);
 
-  char buf[32];
+  char buf[64];
   if (forcar || primeira || e.sessao != ult_e.sessao) {
     milhar(buf, sizeof(buf), e.sessao);
     texto_centro(buf, 46, 5, BRANCO);
-    texto_centro("teclas nesta sessao", 92, 1, CINZA);
+  }
+
+  // Linha de diagnostico do USB (abaixo do odometro)
+  static char     ult_diag[48] = "";
+  static uint32_t ult_rel = 0xFFFFFFFF;
+  const char* dg = st.usb_diag ? st.usb_diag : "";
+  if (forcar || primeira || strncmp(dg, ult_diag, sizeof(ult_diag)) != 0 ||
+      st.usb_ok != ult_st.usb_ok || (st.usb_ok && st.usb_relatorios != ult_rel)) {
+    strncpy(ult_diag, dg, sizeof(ult_diag) - 1);
+    ult_rel = st.usb_relatorios;
+    if (st.usb_ok) {
+      snprintf(buf, sizeof(buf), "%s rel %lu", dg, (unsigned long)st.usb_relatorios);
+      texto_centro(buf, 92, 1, CINZA);
+    } else {
+      texto_centro(dg, 92, 1, LARANJA);
+    }
   }
 
   if (forcar || primeira || e.total != ult_e.total) {

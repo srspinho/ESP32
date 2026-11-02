@@ -1,5 +1,5 @@
 /* =====================================================================
-   KBD_Bluetooth  v0.2.0
+   KBD_Bluetooth  v0.2.1
    Transforma um teclado USB com fio em teclado Bluetooth, contando as
    teclas no caminho.
 
@@ -83,7 +83,8 @@ static void botao_boot() {
       bleteclado_apagar_pareamentos();
       tela_mensagem("PAREAR DE NOVO", 0xFFE0 /* amarelo */);
       delay(1500);
-      const EstadoTela st = { bleteclado_estado(), usbteclado_conectado(), usbteclado_resumo(), s_leds };
+      const EstadoTela st = { bleteclado_estado(), usbteclado_conectado(), usbteclado_resumo(), s_leds,
+                            usbteclado_diagnostico(), usbteclado_relatorios() };
       tela_atualizar(st, estat_atual(), true);
     }
   } else {
@@ -94,7 +95,7 @@ static void botao_boot() {
 
 void setup() {
   kbd_log_iniciar();
-  kbd_log("\n=== KBD_Bluetooth v0.2.0 ===\n");
+  kbd_log("\n=== KBD_Bluetooth v0.2.1 ===\n");
   pinMode(BOTAO_BOOT_PIN, INPUT_PULLUP);
   led_rgb(0, 0, 0);
 
@@ -116,7 +117,8 @@ void setup() {
   usbteclado_iniciar(s_fila_usb);
 
   delay(800);
-  const EstadoTela st = { bleteclado_estado(), usbteclado_conectado(), usbteclado_resumo(), s_leds };
+  const EstadoTela st = { bleteclado_estado(), usbteclado_conectado(), usbteclado_resumo(), s_leds,
+                            usbteclado_diagnostico(), usbteclado_relatorios() };
   tela_atualizar(st, estat_atual(), true);
 }
 
@@ -144,7 +146,8 @@ void loop() {
   static uint32_t tela_ms = 0;
   if (millis() - tela_ms >= 100) {   // no maximo 10 quadros por segundo
     tela_ms = millis();
-    const EstadoTela st = { bleteclado_estado(), usbteclado_conectado(), usbteclado_resumo(), s_leds };
+    const EstadoTela st = { bleteclado_estado(), usbteclado_conectado(), usbteclado_resumo(), s_leds,
+                            usbteclado_diagnostico(), usbteclado_relatorios() };
     tela_atualizar(st, estat_atual(), false);
   }
   led_status(tecla);

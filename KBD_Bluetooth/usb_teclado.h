@@ -29,5 +29,7 @@ void        usbteclado_iniciar(QueueHandle_t fila);
 void        usbteclado_definir_leds(uint8_t leds);   // Caps/Num/Scroll Lock (bits HID)
 bool        usbteclado_conectado();                  // ha um teclado montado
 const char* usbteclado_resumo();                     // ex.: "046D:C31C boot"
+const char* usbteclado_diagnostico();                // ultimo evento do USB (para a tela)
+uint32_t    usbteclado_relatorios();                 // relatorios recebidos desde o boot
 
 #endif  // USB_TECLADO_H

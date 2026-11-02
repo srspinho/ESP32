@@ -50,23 +50,65 @@ troque `LCD_ROTACAO` (1 ↔ 3). Se aparecer uma faixa de lixo na lateral, ajuste
 O teclado vai no **USB-C da placa** por um **adaptador OTG** (USB-C macho → USB-A fêmea).
 
 > ⚠️ **O ESP32 não gera os 5 V do teclado.** No modo host, a placa precisa *fornecer* 5 V no
-> VBUS, e não tem como fazer isso sozinha. É preciso uma fonte de 5 V que alimente **a placa e o
-> teclado juntos**.
+> VBUS. Pelo [esquemático](https://files.waveshare.com/wiki/ESP32-S3-Touch-LCD-1.47/ESP32-S3-Touch-LCD-1.47-Schematic.pdf),
+> o **pino 1 (VBUS)** da barra P1 é o **mesmo fio** do VBUS do USB-C. Então, 5 V no pino 1
+> alimentam a placa **e** o teclado.
 
-Opções, da mais simples para a definitiva:
+### Como a alimentação funciona na placa
 
-1. **Adaptador OTG com entrada de energia** (cabo "Y" USB-C OTG com porta de carga). Liga um
-   carregador ou power bank na entrada, e os 5 V vão para o teclado e para a placa. Serve para os
-   primeiros testes.
-2. **Bateria LiPo + carregador + boost de 5 V**, ligados ao pino **5V/VBUS** da barra de pinos.
-   Antes de fazer isso, **meça com o multímetro** se o pino 5V da barra está ligado direto no VBUS
-   do USB-C. Se houver um diodo entre eles, os 5 V não chegam ao teclado, e a solução passa a ser
-   uma plaquinha USB-A fêmea ligada à bateria (5 V/GND) e aos fios D+/D− do USB-C.
-3. **Placa base própria** (como as do KBD_AMOLED_164), com conector USB-A, bateria e chave liga e
-   desliga. Fica para depois dos testes.
+```
+USB-C VBUS ──┬── pino 1 da barra (VBUS)      ← os dois são o MESMO fio
+             ├── carregador ETA6098 (carrega uma LiPo ligada no VBAT)
+             └── diodo D1 ──► VCC5V ──► regulador 3,3 V ──► ESP32 e tela
+VBAT (LiPo) ──── transistor Q1 ──► VCC5V  (só conduz quando NÃO há VBUS)
+```
 
-Consumo: teclado simples sem LEDs fica entre 5 e 30 mA. Teclados com RGB podem passar de
-300 mA e esgotam a bateria rápido.
+- **Nunca ponha 5 V no VBAT** (pino 2). Ele é o terminal de uma LiPo de 3,0 a 4,2 V e vai direto
+  no carregador.
+- Uma LiPo no VBAT alimenta **só a placa**: o VBUS fica sem tensão e o teclado não liga.
+
+### Para testes: fonte de 5 V
+
+| Fonte 5 V | Placa (barra P1) |
+|---|---|
+| +5 V | **pino 1 · VBUS** |
+| GND | **pino 3 ou 4 · GND** |
+
+Serve um carregador de celular ou um power bank, ligado por um cabo USB cortado ou por uma
+plaquinha breakout USB.
+
+### Versão com bateria
+
+![Esquema da alimentação por bateria](docs/alimentacao_bateria.svg)
+
+| Peça | Observação |
+|---|---|
+| LiPo 1 célula (3,7 V), 1500–3000 mAh | com fios; o tamanho cabe na caixa que fizermos |
+| Módulo **TP4056 com proteção** (DW01 + 8205, entrada USB-C) | carrega a bateria e protege contra descarga profunda |
+| Chave liga/desliga (deslizante) | entre o OUT+ do TP4056 e o VIN+ do boost |
+| Módulo boost **MT3608** | regulável; **ajuste em 5,1 V com o multímetro antes de ligar à placa** |
+| R1, R2 = 100 kΩ; C1 = 100 nF | divisor para medir a bateria no **IO2** (pino 13), ligado depois da chave |
+
+**Ligações:**
+1. Bateria + → **B+** do TP4056; bateria − → **B−**.
+2. **OUT+** do TP4056 → chave → **VIN+** do MT3608; **OUT−** → **VIN−**.
+3. **VOUT+** do MT3608 → **pino 1 (VBUS)** da placa; **VOUT−** → **pino 3 (GND)**.
+4. Divisor: depois da chave → R1 → IO2 (pino 13) → R2 → GND, com C1 de IO2 para GND.
+5. **VBAT da placa (pino 2) e conector de bateria da placa: não ligar nada.**
+
+**Regras:**
+- **Nunca ligue o cabo do PC na placa com a chave ligada.** Os 5 V do boost voltariam para a
+  porta USB do PC.
+- **Para gravar:** desligue a chave, tire o teclado e ligue o PC no USB-C da placa.
+- **Para carregar:** use o USB-C do TP4056. A placa pode continuar ligada, mas com carga ligada o
+  TP4056 às vezes não percebe o fim da carga. Para uma carga completa, desligue a chave.
+- **Por que não usar o carregador da placa:** com o boost ligado ao VBUS, o carregador ETA6098 da
+  placa carregaria a bateria com a energia do próprio boost, um círculo que só gasta bateria.
+
+**Autonomia estimada** (sem economia de energia, que ainda vai ser implementada): a placa com
+Bluetooth e tela gasta perto de 100 a 150 mA em 5 V. Somando a perda do boost, uma bateria de
+2000 mAh dura de 6 a 8 horas. O consumo do teclado entra na conta: teclado simples sem LEDs fica
+entre 5 e 30 mA, e teclados com RGB podem passar de 300 mA e esgotam a bateria rápido.
 
 ## Como compilar e gravar
 
@@ -129,6 +171,20 @@ A contagem segue a regra do KBD_AMOLED_164. Ela também guarda **quantas vezes c
 apertada**, mas só a quantidade, nunca a ordem. O total e o mapa por tecla vão para a flash a
 cada 5 min e sempre que a digitação para por 30 s, nunca a cada tecla.
 
+
+### Diagnóstico do USB
+
+A linha pequena abaixo do número grande mostra o último evento do USB:
+
+| Mensagem | O que quer dizer |
+|---|---|
+| `aguardando teclado` | o USB host está ativo, mas nenhum aparelho respondeu: teclado sem energia (sem 5 V no VBUS) ou adaptador OTG com problema |
+| `dispositivo N detectado` (e fica nisso) | o teclado foi visto, mas a leitura parou no meio |
+| `sem teclado: 03/00/00 ...` | o aparelho não tem interface de teclado padrão; os números são classe/subclasse/protocolo de cada interface (mande para análise) |
+| `XXXX:YYYY e um HUB` | teclado com hub interno: ainda não suportado |
+| `falha no USB host (0x...)` | o USB host não iniciou; confira `USB Mode` nas configurações da placa |
+| `XXXX:YYYY ok (...) rel N` | teclado montado; `rel` conta os relatórios recebidos e deve subir a cada tecla |
+
 ## Arquivos
 
 | Arquivo | Função |
@@ -156,6 +212,6 @@ aparece no Windows. A tela com o JD9853 e a leitura do teclado pelo USB ainda n�
 - [ ] Relógio (Wi-Fi/NTP) para a contagem **do dia**
 - [ ] Ver as estatísticas pelo celular (serviço GATT ou página web pelo Wi-Fi)
 - [ ] Remapeamentos (AltGr+R etc., como no KBD_AMOLED_164)
-- [ ] Bateria: leitura da tensão, nível no Bluetooth e economia de energia
+- [ ] Bateria: leitura da tensão (divisor no IO2), nível no Bluetooth e economia de energia
 - [ ] Atualização OTA pelo Wi-Fi
 - [ ] Mapa de teclas e screensavers na tela
