@@ -171,6 +171,20 @@ A contagem segue a regra do KBD_AMOLED_164. Ela também guarda **quantas vezes c
 apertada**, mas só a quantidade, nunca a ordem. O total e o mapa por tecla vão para a flash a
 cada 5 min e sempre que a digitação para por 30 s, nunca a cada tecla.
 
+
+### Diagnóstico do USB
+
+A linha pequena abaixo do número grande mostra o último evento do USB:
+
+| Mensagem | O que quer dizer |
+|---|---|
+| `aguardando teclado` | o USB host está ativo, mas nenhum aparelho respondeu: teclado sem energia (sem 5 V no VBUS) ou adaptador OTG com problema |
+| `dispositivo N detectado` (e fica nisso) | o teclado foi visto, mas a leitura parou no meio |
+| `sem teclado: 03/00/00 ...` | o aparelho não tem interface de teclado padrão; os números são classe/subclasse/protocolo de cada interface (mande para análise) |
+| `XXXX:YYYY e um HUB` | teclado com hub interno: ainda não suportado |
+| `falha no USB host (0x...)` | o USB host não iniciou; confira `USB Mode` nas configurações da placa |
+| `XXXX:YYYY ok (...) rel N` | teclado montado; `rel` conta os relatórios recebidos e deve subir a cada tecla |
+
 ## Arquivos
 
 | Arquivo | Função |
